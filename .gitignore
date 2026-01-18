@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Data artifacts
+data/raw/*
+data/interim/*
+data/processed/*
+
+# Logs
+logs/*
+
+# OS
+.DS_Store
+
