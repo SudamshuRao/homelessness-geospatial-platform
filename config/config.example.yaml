@@ -1,0 +1,8 @@
+data:
+  tents_csv: "data/raw/Tents.csv"
+  processed_dir: "data/processed"
+
+pipeline:
+  h3_resolution: 10
+  tent_ring: 1
+
