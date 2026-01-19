@@ -2,3 +2,6 @@ pandas
 pyyaml
 h3
 pytest
+fastapi
+uvicorn
+
