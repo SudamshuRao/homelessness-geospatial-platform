@@ -7,3 +7,6 @@ pipeline:
   h3_resolution: 10
   tent_ring: 1
 
+service:
+  enriched_csv_path: "data/processed/20260119_043050/focused_hexes_enriched_ring1_res10.csv"
+
