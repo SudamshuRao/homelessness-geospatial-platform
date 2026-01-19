@@ -1,0 +1,21 @@
+# Python cache / env
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Git
+.git
+.gitignore
+
+# Local data & logs (we'll mount them as volumes)
+data/raw/*
+data/interim/*
+data/processed/*
+logs/*
+
+# OS / editor junk
+.DS_Store
+*.swp
+*.swo
+
