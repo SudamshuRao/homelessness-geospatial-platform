@@ -142,5 +142,45 @@ def get_hex_by_id(h3_id: str):
     }
 
 
+@app.get("/summary/top-tent-hexes")
+def top_tent_hexes(n: int = Query(10, ge=1, le=100)):
+    """
+    Return top N hexes containing tents, ranked by total facility density.
+    """
+    df: pd.DataFrame = app.state.enriched_df
+
+    # Identify facility count columns
+    facility_cols = [c for c in df.columns if c.endswith("_count")]
+    if not facility_cols:
+        raise HTTPException(status_code=500, detail="No facility count columns found")
+
+    # Filter to hexes that contain tents
+    tent_df = df[df["tent_status"] == 1].copy()
+    if tent_df.empty:
+        return {"count": 0, "items": []}
+
+    # Aggregate facility density
+    tent_df["total_facilities"] = tent_df[facility_cols].sum(axis=1)
+
+    top = (
+        tent_df.sort_values("total_facilities", ascending=False)
+        .head(n)
+        .reset_index()
+    )
+
+    results = []
+    for _, row in top.iterrows():
+        results.append(
+            {
+                "h3_id": row["h3_id"],
+                "center_lat": float(row["center_lat"]),
+                "center_lon": float(row["center_lon"]),
+                "tent_status": int(row["tent_status"]),
+                "total_facilities": int(row["total_facilities"]),
+                "facilities": {c: int(row[c]) for c in facility_cols},
+            }
+        )
+
+    return {"count": len(results), "items": results}
 
 
