@@ -40,3 +40,21 @@ def detect_lat_lon_columns(df: pd.DataFrame) -> tuple[str, str]:
         raise ValueError(f"Could not detect lat/lon columns. Columns found: {list(df.columns)}")
     return lat_col, lon_col
 
+import logging
+
+
+def get_logger(name: str) -> logging.Logger:
+    """
+    Standard logger for the pipeline. Uses INFO by default.
+    """
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            fmt="%(asctime)s %(levelname)s %(name)s - %(message)s"
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+    return logger
+
