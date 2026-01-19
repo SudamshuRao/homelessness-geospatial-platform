@@ -1,5 +1,6 @@
 data:
   tents_csv: "data/raw/Tents.csv"
+  facilities_dir: "data/raw/facilities"
   processed_dir: "data/processed"
 
 pipeline:
