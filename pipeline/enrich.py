@@ -15,8 +15,8 @@ from __future__ import annotations
 
 from pathlib import Path
 import pandas as pd
-from pipeline.utils import coerce_numeric, pick_col, latlon_to_h3
-
+from pipeline.utils import coerce_numeric, pick_col, latlon_to_h3, get_logger
+logger = get_logger(__name__)
 
 # These match the exact files you copied into data/raw/facilities/
 CATEGORIES = [
@@ -72,6 +72,10 @@ def run_enrich_facilities(
     if "h3_id" not in focused_df.columns:
         raise ValueError("focused_hex_csv must contain 'h3_id'")
 
+
+    logger.info(f"Reading focused hexes: {focused_hex_csv} (rows={len(focused_df):,})")
+    logger.info(f"Facilities dir: {facilities_dir}")
+
     result_df = focused_df.copy()
 
     for cat in CATEGORIES:
@@ -81,14 +85,14 @@ def run_enrich_facilities(
         facility_path = facilities_dir / f"{name}.csv"
         if not facility_path.exists():
             # since you only copied CSVs, we only support CSV in this minimal step
-            print(f"• {name}: missing file {facility_path.name}, setting {prefix}_count=0")
+            logger.info(f"• {name}: missing file {facility_path.name}, setting {prefix}_count=0")
             result_df[f"{prefix}_count"] = 0
             continue
 
         points = load_points_from_csv(facility_path)
         if not points:
             result_df[f"{prefix}_count"] = 0
-            print(f"• {name}: 0 valid points")
+            logger.info(f"• {name}: 0 valid points")
             continue
 
         h_ids = [latlon_to_h3(lat, lon, hex_resolution) for (lat, lon) in points]
@@ -98,8 +102,9 @@ def run_enrich_facilities(
         count_map = dict(zip(agg["h3_id"], agg["count"]))
 
         result_df[f"{prefix}_count"] = result_df["h3_id"].map(count_map).fillna(0).astype(int)
-        print(f"• {name}: loaded {len(points)} points")
-
+        logger.info(f"• {name}: loaded {len(points)} points")
+ 
+    logger.info(f"Writing enriched hex CSV: {output_csv} (rows={len(result_df):,})")
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     result_df.to_csv(output_csv, index=False)
     return output_csv
