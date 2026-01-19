@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import pandas as pd
-import h3
+from pipeline.utils import coerce_numeric, pick_col, latlon_to_h3
 
 
 # These match the exact files you copied into data/raw/facilities/
@@ -38,29 +38,6 @@ CATEGORIES = [
 ]
 
 
-def _coerce_numeric(s: pd.Series) -> pd.Series:
-    cleaned = (
-        s.astype(str)
-        .str.strip()
-        .str.replace(r"[^\d\.\-\+eE]", "", regex=True)
-    )
-    return pd.to_numeric(cleaned, errors="coerce")
-
-
-def _pick_col(df: pd.DataFrame, candidates: list[str]) -> str | None:
-    lower_map = {c.lower(): c for c in df.columns}
-    for c in candidates:
-        if c.lower() in lower_map:
-            return lower_map[c.lower()]
-    return None
-
-
-def latlon_to_h3(lat: float, lon: float, res: int) -> str:
-    try:
-        return h3.latlng_to_cell(lat, lon, res)
-    except AttributeError:
-        return h3.geo_to_h3(lat, lon, res)
-
 
 def load_points_from_csv(path: Path) -> list[tuple[float, float]]:
     df = pd.read_csv(path)
@@ -68,13 +45,13 @@ def load_points_from_csv(path: Path) -> list[tuple[float, float]]:
     lat_candidates = ["lat", "latitude", "y", "ycoord", "y_coordinate", "point_y", "POINT_Y", "Y", "stop_lat"]
     lon_candidates = ["lon", "lng", "longitude", "x", "xcoord", "x_coordinate", "point_x", "POINT_X", "X", "stop_lon"]
 
-    lat_col = _pick_col(df, lat_candidates)
-    lon_col = _pick_col(df, lon_candidates)
+    lat_col = pick_col(df, lat_candidates)
+    lon_col = pick_col(df, lon_candidates)
     if lat_col is None or lon_col is None:
         raise ValueError(f"No lat/lon columns found in {path.name}")
 
-    lat = _coerce_numeric(df[lat_col])
-    lon = _coerce_numeric(df[lon_col])
+    lat = coerce_numeric(df[lat_col])
+    lon = coerce_numeric(df[lon_col])
 
     # swap if reversed
     if lat.abs().median() > 90 and lon.abs().median() < 90:

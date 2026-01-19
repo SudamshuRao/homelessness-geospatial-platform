@@ -9,12 +9,8 @@ Output: focused hex CSV/Parquet with h3_id, center_lat, center_lon, tent_status
 from pathlib import Path
 import pandas as pd
 import h3
+from pipeline.utils import latlon_to_h3, detect_lat_lon_columns
 
-def latlon_to_h3(lat: float, lon: float, res: int) -> str:
-    try:
-        return h3.latlng_to_cell(lat, lon, res)
-    except AttributeError:
-        return h3.geo_to_h3(lat, lon, res)
 
 def run_spatial_index_tents(
     tents_csv: Path,
@@ -26,10 +22,8 @@ def run_spatial_index_tents(
     tents_df = pd.read_csv(tents_csv)
 
     # 2) detect lat/lon columns (we’ll improve this next step)
-    lat_col = next((c for c in tents_df.columns if c.lower() in ["lat", "latitude", "y"]), None)
-    lon_col = next((c for c in tents_df.columns if c.lower() in ["lon", "lng", "longitude", "x"]), None)
-    if lat_col is None or lon_col is None:
-        raise ValueError("Could not find lat/lon columns in tents CSV")
+    lat_col, lon_col = detect_lat_lon_columns(tents_df)
+
 
     tents_df = tents_df.rename(columns={lat_col: "lat", lon_col: "lon"})[["lat", "lon"]].dropna()
 
