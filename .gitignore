@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 .env
 
+
 # Data artifacts
 data/raw/*
 data/interim/*
@@ -15,3 +16,10 @@ logs/*
 # OS
 .DS_Store
 
+# Testing
+.pytest_cache/
+
+# Packaging artifacts
+*.egg-info/
+dist/
+build/
